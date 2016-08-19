@@ -298,6 +298,12 @@ class AccountBalanceReportingLine(orm.Model):
                     # Use credit instead of balance
                     mode = 'credit'
                     acc_code = acc_code[7:-1]  # Strip credit()
+                elif re.match(r'^pasive\(.*\)$', acc_code):
+                    mode = 'pasive'
+                    acc_code = acc_code[7:-1]  # Strip pasive()
+                elif re.match(r'^active\(.*\)$', acc_code):
+                    mode = 'active'
+                    acc_code = acc_code[7:-1]  # Strip active()
                 else:
                     mode = 'balance'
                 # Calculate sign of the balance mode
@@ -330,6 +336,16 @@ class AccountBalanceReportingLine(orm.Model):
                         res -= account.debit * sign
                     elif mode == 'credit':
                         res += account.credit * sign
+                    elif mode == 'pasive':
+                        if account.balance * sign * sign_mode > 0:
+                            res += account.balance * sign * sign_mode 
+			else:
+                            res += 0 
+                    elif mode == 'active':
+                        if account.balance * sign * sign_mode < 0:
+                            res += account.balance * sign * sign_mode 
+			else:
+                            res += 0
                     else:
                         res += account.balance * sign * sign_mode
         return res
