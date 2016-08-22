@@ -266,6 +266,16 @@ class AccountBalanceReportingLine(models.Model):
                         value -= (group['debit'] or 0.0) * sign
                     elif mode == 'credit':
                         value += (group['credit'] or 0.0) * sign
+                    elif mode == 'pasive':
+                        if account.balance * sign * sign_mode > 0:
+                            value += account.balance * sign * sign_mode 
+                        else:
+                            value += 0
+                    elif mode == 'active':
+                        if account.balance * sign * sign_mode < 0:
+                            rvaluees += account.balance * sign * sign_mode
+                        else:
+                            value += 0
                     else:
                         value += (
                             sign * sign_mode * ((group['debit'] or 0.0) -
@@ -505,6 +515,12 @@ class AccountBalanceReportingLine(models.Model):
             # Use credit instead of balance
             mode = 'credit'
             acc_code = acc_code[7:-1]  # Strip credit()
+        elif re.match(r'^pasive\(.*\)$', acc_code):
+            mode = 'pasive'
+            acc_code = acc_code[7:-1]  # Strip pasive()
+        elif re.match(r'^active\(.*\)$', acc_code):
+            mode = 'active'
+            acc_code = acc_code[7:-1]  # Strip active()
         else:
             mode = 'balance'
         # Calculate sign of the balance mode
